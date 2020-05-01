@@ -1,0 +1,211 @@
+WindowManager:
+    MainWindow:
+    AddWindow:
+	ClientWindow:
+
+<MainWindow>:
+    name: 'main'
+	lay1: lay1
+
+    GridLayout:
+        cols:1
+		id: lay1
+		innerLay: innerLay
+		
+		Label:
+			text: "List of Clients"
+
+        GridLayout:
+            cols: 4
+			id: innerLay
+
+        Button:
+            text: "Add"
+			on_release:
+				app.root.current = "AddClient"
+				root.manager.transition.direction = "left"
+
+
+
+<AddWindow>:
+    name: "AddClient"
+	
+	lay1: lay1
+	
+	GridLayout:
+		cols:1
+		id : lay1
+		innerLay: innerLay
+		
+		GridLayout:
+			cols:2
+			id: innerLay
+			clientName: clientName
+			ipAddress: ipAddress
+			port: port
+			
+			Label:
+				text: "Name: "
+				
+			TextInput:
+				id: clientName
+				multiline: False
+
+			Label:
+				text: "IP Address: "
+				
+			IPTextInput:
+				id: ipAddress
+				multiline: False
+				
+			Label:
+				text: "Port: "
+				
+			TextInput:
+				id: port
+				multiline: False
+				input_filter: "int"
+				text: "36330"
+			
+			Button:
+				text: "Cancel"
+				on_release:
+					app.root.current = "main"
+					root.manager.transition.direction = "right"
+
+			Button:
+				text: "Save"
+				on_press: root.saveBtn()
+				on_release:
+					app.root.current = "main"
+					root.manager.transition.direction = "right"
+				
+<ClientWindow>:
+    name: "Client"
+	
+	lay1: lay1
+	
+	GridLayout:
+		cols:1
+		id : lay1
+		idClient: idClient
+		clientLay: clientLay
+		slotLay: slotLay
+		
+		Label:
+			text: "Client: "
+			id: idClient
+		
+		GridLayout:
+			cols:4
+			id: clientLay
+			
+			idPower: idPower
+			idUser: idUser
+			idTeam: idTeam
+			idPpd: idPpd
+			
+			#line 1
+			Label:
+				text: "Power"
+				
+			Label:
+				text: "User"
+				
+			Label:
+				text: "Team"
+				
+			Label:
+				text: "PointsPerDay"
+				
+			#line 2
+			Spinner:
+				id: idPower
+				text: "light"
+				values: "light", "medium", "full"
+				on_text: root.set_client_power(idPower.text)
+				
+			Label:
+				id: idUser
+				
+			Label:
+				id: idTeam
+				
+			Label:
+				id: idPpd
+
+		GridLayout:
+			cols:3
+			id: slotLay
+			
+			#line 1
+			Label:
+				text: "Slot"
+				
+			Label:
+				text: "Status"
+				
+			Label:
+				text: "Description"
+				
+			#line 2
+			Spinner:		
+				text: "Slot"
+
+				
+			Label:
+				id: idSlotStatus
+				
+			Label:
+				id: idSlotDescription
+				
+		GridLayout: 
+			cols:3
+			
+			Button:
+				text: "Fold"
+
+			Button:
+				text: "Pause"
+
+			Button:
+				text: "Finish"
+
+		GridLayout:
+			cols:4
+			id: queueLay
+			
+			#line1
+			Label:
+				text: "Queue"
+				
+			Label:
+				text: "Status"
+				
+			Label:
+				text: "Progress"
+
+			Label:
+				text: "ETA"
+				
+			#line2
+			Button:
+				id: idQueue
+				text: "QueueID"
+				
+			Label:
+				id: idQueueStatus
+				
+			Label:
+				id: idProgress
+
+			Label:
+				id: idETA
+				
+			
+				
+		Button:
+			text: "Clients"
+			on_release:
+				app.root.current = "main"
+				root.manager.transition.direction = "right"
