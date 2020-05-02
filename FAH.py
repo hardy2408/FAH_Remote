@@ -71,7 +71,8 @@ class FAH_Client:
 			self.tn.write(byteCommand)
 			response = self.tn.read_until(b"\n---\n", self.timeOut)
 		except:
-			print("Error sending the command ",command, "to the telnet server")
+			msg = "Error sending the command " + command + "to the telnet server"
+			logger.error(msg)
 
 		content = response.decode()
 		# strip of the beginning and the end of the so called PyON structure
@@ -118,7 +119,8 @@ class FAH_Client:
 			self.tn.write(byteCommand)
 			response = self.tn.read_until(b"\n---\n", self.timeOut)
 		except:
-			print("Error sending the command ",command, "to the telnet server")
+			msg = "Error sending the command " + command + "to the telnet server"
+			logger.error(msg)
 
 		content = response.decode()
 		# strip of the beginning and the end of the so called PyON structure
@@ -152,12 +154,14 @@ class FAH_Client:
 					
 		# telnet server connected		
 		command = "option power " +value + "\r"
-		print("Power command: "+command)
+		msg = "Power command: "+command
+		logger.info(msg)
 		byteCommand = command.encode(encoding='UTF-8')
 		try:
 			self.tn.write(byteCommand)
 		except:
-			print("Error sending the command ",command, "to the telnet server")
+			msg = "Error sending the command " + command + "to the telnet server"
+			logger.error(msg)
 		self.power = value
 		
 		return 
@@ -173,7 +177,8 @@ class FAH_Client:
 			self.tn.write(byteCommand)
 			response = self.tn.read_until(b"\n---\n", self.timeOut)
 		except:
-			print("Error sending the command ",command, "to the telnet server")
+			msg = "Error sending the command " + command + "to the telnet server"
+			logger.error(msg)
 
 		content = response.decode()
 		# strip of the beginning and the end of the so called PyON structure
@@ -195,40 +200,125 @@ class FAH_Client:
 
 		
 	def getSlots(self):
+		# let's check the telnet connection
+		self.connect()
+
 		# get the slot stucture
 		command = "slot-info\r"
 		byteCommand = command.encode(encoding='UTF-8')
 		try:
 			self.tn.write(byteCommand)
-			response = self.tn.read_until(b"\n---\n", timeOut)
+			response = self.tn.read_until(b"\n---\n", 2)
 		except:
-			print("Error sending the command ",command, "to the telnet server")
-		content = response.decode()
-		index = content.find("[")
-		content = "{slots: " + content[index:]
-		#content = content.replace("[",'{ "slots":')
-		#content = content.replace("]","}")
-		content = content + "}"
-		content = content.replace("False",'"False"')
-		print("JSON-String: \n", content)
-		self.slot_json = json.loads(content)
-		print("JSON Slots\n", json.dumps(parsed_json, indent=4, sort_keys=True))
+			msg = "Error sending the command " + command + "to the telnet server"
+			logger.error(msg)
 
-		return self.slot_json
+		content = response.decode()
+
+		index = content.find("\nPyON ")
+		content = content[index+6:]
+		index = content.find("\n---\n")
+		content = content[:index]
+
+		index = content.find("slots")
+		content = content[index+6:]
+		content = '{ "slots": \n' + content
+		content = content + '}'
+		content = content.replace("False",'"False"')
+
+		#print("JSON-String: \n", content)
+		self.slots_json = json.loads(content)
+		msg = "JSON Slots\n" + json.dumps(self.slots_json, indent=4, sort_keys=True)
+		
+		logger.info(msg)
+		
+		self.numOfSlots = len(self.slots_json['slots'])
+		#print("Number of slots: ", self.numOfSlots)
+
+		return self.slots_json
 		
 		
+	def fold(self, slotID):
+		# let's check the telnet connection
+		self.connect()
+					
+		# telnet server connected		
+		command = "unpause " + slotID + "\r"
+		#print("Unpause command: "+command)
+		byteCommand = command.encode(encoding='UTF-8')
+		try:
+			self.tn.write(byteCommand)
+		except:
+			msg = "Error sending the command " + command + "to the telnet server"
+			logger.error(msg)
+
+		return
+
+	def pause(self, slotID):
+		# let's check the telnet connection
+		self.connect()
+					
+		# telnet server connected		
+		command = "pause " + slotID + "\r"
+		#print("Unpause command: "+command)
+		byteCommand = command.encode(encoding='UTF-8')
+		try:
+			self.tn.write(byteCommand)
+		except:
+			msg = "Error sending the command " + command + "to the telnet server"
+			logger.error(msg)
+
+		return
+		
+	def finish(self, slotID):
+		# let's check the telnet connection
+		self.connect()
+					
+		# telnet server connected		
+		command = "finish " + slotID + "\r"
+		#print("Unpause command: "+command)
+		byteCommand = command.encode(encoding='UTF-8')
+		try:
+			self.tn.write(byteCommand)
+		except:
+			msg = "Error sending the command " + command + "to the telnet server"
+			logger.error(msg)
+
+		return
+
 	def getUnits(self):
+		# let's check the telnet connection
+		self.connect()
+
+		# get the unit stucture
+		command = "queue-info\r"
+		byteCommand = command.encode(encoding='UTF-8')
+		try:
+			self.tn.write(byteCommand)
+			response = self.tn.read_until(b"\n---\n", 2)
+		except:
+			msg = "Error sending the command " + command + "to the telnet server"
+			logger.error(msg)
+
+		content = response.decode()
+
+		index = content.find("\nPyON ")
+		content = content[index+6:]
+		index = content.find("\n---\n")
+		content = content[:index]
+
 		# get the work units from the server
-		return
+		index = content.find("units")
+		content = content[index+6:]
+		content = '{ "units": \n' + content
+		content = content + '}'
+		#print("JSON-String: \n", content)
+		self.units_json = json.loads(content)
+		self.numOfUnits = len(self.units_json['units'])
+		msg = "JSON Dump\n" +  json.dumps(self.units_json, indent=4, sort_keys=True)
+		logger.debug(msg)
+		return self.units_json
 		
-	def pause(self, slot=""):
-		return
-		
-	def finish(self, slot=""):
-		return
-		
-	def unpause(self, slot=""):
-		return
 
 def main():		
 	ClientList = []

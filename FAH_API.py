@@ -82,26 +82,38 @@ def main(command, ip="127.0.0.1", timeOut=5, port=36330):
 
 
 if __name__ == '__main__':
-#	pJSON = main("slot-info") #slot-info return a JSON object
-#	print("JSON Dump\n", json.dumps(pJSON, indent=4, sort_keys=True))
+	pJSON = main("slot-info") #slot-info return a JSON object
+	print("JSON Dump\n", json.dumps(pJSON, indent=4, sort_keys=True))
+	print("Number of slots: ", len(pJSON['slots']))
+	i = 0
+	while i < len(pJSON['slots']):
+		print("SlotID:", pJSON['slots'][i]['id'])
+		i += 1
 	
-#	s = main("num-slots") # returns an integer as a string
-#	print("It's a number: ", s)
+	#num_Slots = pJSON.SizeOfArray("slots")
+	#while i < num_Slots:
+	#	print("SlotID: ",i , pJSON.stringOf("slots[i].id")
 	
-#	pJSON = main("options user") # returns the userID
-#	print("JSON Dump\n", json.dumps(pJSON, indent=4, sort_keys=True))
+	'''
+	s = main("num-slots") # returns an integer as a string
+	print("It's a number: ", s)
+	
+	pJSON = main("options user") # returns the userID
+	print("JSON Dump\n", json.dumps(pJSON, indent=4, sort_keys=True))
 
 	pJSON = main("options") # returns the options
 	print("JSON Dump\n", json.dumps(pJSON, indent=4, sort_keys=True))
 	print("User: ",pJSON['options']['user'])
 	
-	#main("finish","127.0.0.1",1) # does not return anything
+	main("finish","127.0.0.1",1) # does not return anything
 	
-	#main("pause","127.0.0.1",1) # does not return anything
+	main("pause","127.0.0.1",1) # does not return anything
 	
+	'''
 	pJSON = main("queue-info") # returns the queue-info
 	print("JSON Dump\n", json.dumps(pJSON, indent=4, sort_keys=True))
-
+	'''
+	
 	#s = main("pause 02") # error case for a not defined slot
 	#print(s)
 	
@@ -111,3 +123,4 @@ if __name__ == '__main__':
 	# command not supported
 	s = main("numbers") # not a supported command
 	print("It's a number: ", s)
+	'''

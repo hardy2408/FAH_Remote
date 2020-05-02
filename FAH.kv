@@ -91,6 +91,7 @@ WindowManager:
 		idClient: idClient
 		clientLay: clientLay
 		slotLay: slotLay
+		queueLay: queueLay
 		
 		Label:
 			text: "Client: "
@@ -138,9 +139,13 @@ WindowManager:
 			cols:3
 			id: slotLay
 			
+			idSlot: idSlot
+			idSlotStatus: idSlotStatus
+			idSlotDescription: idSlotDescription
+			
 			#line 1
 			Label:
-				text: "Slot"
+				text: "Slot ID"
 				
 			Label:
 				text: "Status"
@@ -151,6 +156,8 @@ WindowManager:
 			#line 2
 			Spinner:		
 				text: "Slot"
+				id: idSlot
+				on_text: root.selectSlot(idSlot.text)
 
 				
 			Label:
@@ -164,16 +171,24 @@ WindowManager:
 			
 			Button:
 				text: "Fold"
+				on_release: root.fold()
 
 			Button:
 				text: "Pause"
+				on_release: root.pause()
 
 			Button:
 				text: "Finish"
+				on_release: root.finish()
 
 		GridLayout:
 			cols:4
 			id: queueLay
+			
+			idQueue: idQueue
+			idQueueStatus: idQueueStatus
+			idProgress: idProgress
+			idETA: idETA
 			
 			#line1
 			Label:
