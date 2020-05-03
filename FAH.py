@@ -88,7 +88,7 @@ class FAH_Client:
 		content = content[index+8:]
 		content = '{ "options": \n' + content
 		content = content + '}'
-		print("JSON-String: \n", content)
+		#print("JSON-String: \n", content)
 		self.options_JSON = json.loads(content)
 		
 		msg = "JSON Dump\n" + json.dumps(self.options_JSON, indent=4, sort_keys=True)

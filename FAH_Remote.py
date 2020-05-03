@@ -6,6 +6,8 @@ from kivy.storage.jsonstore import JsonStore
 from kivy.uix.label import Label
 from kivy.uix.textinput import TextInput
 from kivy.uix.button import Button
+from kivy.uix.floatlayout import FloatLayout
+from kivy.uix.popup import Popup
 from kivy.clock import Clock
 import re
 import threading
@@ -78,7 +80,7 @@ def thread_updateClient(client):
 	for x in _ClientList:
 		#print("Client name: ", x.name, x.status)
 		if x.name == client and x.status == "Online":
-			print("Active client found:", x.name, x.status)
+			#print("Active client found:", x.name, x.status)
 			x.getOptions()
 			A.screens[2].lay1.clientLay.idUser.text = x.user
 
@@ -210,11 +212,27 @@ class AddWindow(Screen):
 	
 	def saveBtn(self):
 		clientName = self.lay1.innerLay.clientName.text.strip()
-		clientIP = self.lay1.innerLay.ipAddress.text.strip()
-		port = int(self.lay1.innerLay.port.text.strip())
+		# let's look if the given client name is unique and not empty
+		# todo
 		
-		store.put(str(clientIP), name=clientName, port=port)
-		print('Client stored: ', clientIP, store.get(clientIP))
+		
+		clientIP = self.lay1.innerLay.ipAddress.text.strip()
+		# let's check the IP address againt the regular expression of a real IP address
+		matchIP = re.search("^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$", clientIP)
+		if matchIP == None:
+			#print("No IP address given", clientIP)
+			show_popup()
+		else:
+		
+			port = int(self.lay1.innerLay.port.text.strip())
+			
+			# store the new client permanent
+			store.put(str(clientIP), name=clientName, port=port)
+			msg = 'Client stored: ' + clientIP +" "+ clientName
+			logger.info(msg)
+			# switch to the main screen
+			A = kv
+			A.current = "main"
 		
 
 class IPTextInput(TextInput):
@@ -226,6 +244,24 @@ class IPTextInput(TextInput):
 		return super(IPTextInput, self).insert_text(s, from_undo=from_undo)
 
 
+class MyPopup(FloatLayout):
+	def __init__(self, **kwargs):
+		super(MyPopup, self).__init__(**kwargs)
+
+	def setLabel(self, errorText):
+		self.idLabel.text = errorText
+	
+def show_popup():
+	show = MyPopup() # Create a new instance of the Popup class 
+	show.setLabel("IP address is not valid")
+	
+	popupWindow = Popup(title="Popup Window", content=show, size_hint=(None,None),size=(400,400)) 
+	# Create the popup window
+
+	show.idButton.bind(on_press=popupWindow.dismiss)
+
+	popupWindow.open() # show the popup
+	
 
 kv = Builder.load_file("FAH.kv")
 
