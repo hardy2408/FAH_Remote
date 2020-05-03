@@ -71,13 +71,14 @@ def thread_clients(number):
 def thread_updateClient(client):
 
 	global _UpdateClientSemaphore
+	global _ClientList
 	
 	A = kv
-
+	
 	for x in _ClientList:
-		#print("Client name: ", x.name)
-		if x.name == client:
-			#print("Active client found:", x.name)
+		#print("Client name: ", x.name, x.status)
+		if x.name == client and x.status == "Online":
+			print("Active client found:", x.name, x.status)
 			x.getOptions()
 			A.screens[2].lay1.clientLay.idUser.text = x.user
 
@@ -236,6 +237,20 @@ class FAH_Remote(App):
 		A.current = "Client"
 		logger.debug("Change Screen to ClientName: ", args[0].text)
 		A.screens[2].lay1.idClient.text = "Client: "+args[0].text
+		
+		# clear screen for the new client
+		A.screens[2].lay1.clientLay.idUser.text = ""
+		A.screens[2].lay1.clientLay.idPower.text = "light"
+		A.screens[2].lay1.clientLay.idPpd.text = ""
+
+		A.screens[2].lay1.slotLay.idSlot.text = "Slot"
+		A.screens[2].lay1.slotLay.idSlotStatus.text = ""
+		A.screens[2].lay1.slotLay.idSlotDescription.text = ""
+		A.screens[2].lay1.slotLay.idSlot.values = "SlotID"
+		A.screens[2].lay1.queueLay.idQueue.text = "" 
+		A.screens[2].lay1.queueLay.idQueueStatus.text = "" 
+		A.screens[2].lay1.queueLay.idProgress.text = "" 
+		A.screens[2].lay1.queueLay.idETA.text = "" 
 		
 		global _SelectedClient
 		_SelectedClient = args[0].text

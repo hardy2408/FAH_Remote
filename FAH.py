@@ -32,6 +32,7 @@ class FAH_Client:
 		self.user = ""
 		self.team = ""
 		self.power = ""
+		self.status = "Offline"
 		self.tn = None
 				
 	def connect(self):
@@ -63,6 +64,8 @@ class FAH_Client:
 	def getOptions(self):
 		# let's check the telnet connection
 		self.connect()
+		if self.status == "Offline":
+			return
 					
 		# telnet server connected		
 		command = "options" + "\r"
@@ -85,7 +88,7 @@ class FAH_Client:
 		content = content[index+8:]
 		content = '{ "options": \n' + content
 		content = content + '}'
-		#print("JSON-String: \n", content)
+		print("JSON-String: \n", content)
 		self.options_JSON = json.loads(content)
 		
 		msg = "JSON Dump\n" + json.dumps(self.options_JSON, indent=4, sort_keys=True)
@@ -111,6 +114,8 @@ class FAH_Client:
 	def getPower(self):
 		# let's check the telnet connection
 		self.connect()
+		if self.status == "Offline":
+			return
 					
 		# telnet server connected		
 		command = "options power" + "\r"
@@ -151,6 +156,8 @@ class FAH_Client:
 	def setPower(self, value):
 		# let's check the telnet connection
 		self.connect()
+		if self.status == "Offline":
+			return
 					
 		# telnet server connected		
 		command = "option power " +value + "\r"
@@ -169,6 +176,8 @@ class FAH_Client:
 	def getPPD(self):
 		# let's check the telnet connection
 		self.connect()
+		if self.status == "Offline":
+			return
 					
 		# telnet server connected		
 		command = "ppd" + "\r"
@@ -202,6 +211,8 @@ class FAH_Client:
 	def getSlots(self):
 		# let's check the telnet connection
 		self.connect()
+		if self.status == "Offline":
+			return None
 
 		# get the slot stucture
 		command = "slot-info\r"
@@ -241,6 +252,8 @@ class FAH_Client:
 	def fold(self, slotID):
 		# let's check the telnet connection
 		self.connect()
+		if self.status == "Offline":
+			return
 					
 		# telnet server connected		
 		command = "unpause " + slotID + "\r"
@@ -257,6 +270,8 @@ class FAH_Client:
 	def pause(self, slotID):
 		# let's check the telnet connection
 		self.connect()
+		if self.status == "Offline":
+			return
 					
 		# telnet server connected		
 		command = "pause " + slotID + "\r"
@@ -273,6 +288,8 @@ class FAH_Client:
 	def finish(self, slotID):
 		# let's check the telnet connection
 		self.connect()
+		if self.status == "Offline":
+			return
 					
 		# telnet server connected		
 		command = "finish " + slotID + "\r"
@@ -289,6 +306,8 @@ class FAH_Client:
 	def getUnits(self):
 		# let's check the telnet connection
 		self.connect()
+		if self.status == "Offline":
+			return
 
 		# get the unit stucture
 		command = "queue-info\r"
