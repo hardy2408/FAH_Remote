@@ -43,6 +43,7 @@ from FAH import FAH_Client
 _ClientList = [] # global variable for the clients
 _StatusWidget = [] # global variable for Status Widget in the main Screen
 _ClientSemaphore = 0 # global variable for the threads
+_UpdateClientSemaphore = 0 # global variable for updating the client window
 _SelectedClient = ""
 
 store = JsonStore('FAH_remote.json')
@@ -66,6 +67,56 @@ def thread_clients(number):
 	
 	logger.debug("Client Threading ended")
 
+
+def thread_updateClient(client):
+
+	global _UpdateClientSemaphore
+	
+	A = kv
+
+	for x in _ClientList:
+		#print("Client name: ", x.name)
+		if x.name == client:
+			#print("Active client found:", x.name)
+			x.getOptions()
+			A.screens[2].lay1.clientLay.idUser.text = x.user
+
+			x.getPower()
+			A.screens[2].lay1.clientLay.idPower.text = x.power
+
+			x.getPPD()
+			A.screens[2].lay1.clientLay.idPpd.text = x.ppd
+
+			pJSON = x.getSlots()
+			A.screens[2].lay1.slotLay.idSlot.text = pJSON['slots'][0]['id']
+			A.screens[2].lay1.slotLay.idSlotStatus.text = pJSON['slots'][0]['status']
+			A.screens[2].lay1.slotLay.idSlotDescription.text = pJSON['slots'][0]['description']
+
+			spinnerValues = []
+			i = 0
+			while i < x.numOfSlots:
+				#print("SlotID:", pJSON['slots'][i]['id'])
+				spinnerValues.append(pJSON['slots'][i]['id'])
+				i += 1
+			#print("SpinnerValues: ", spinnerValues)
+			A.screens[2].lay1.slotLay.idSlot.values = spinnerValues
+			
+			x.getUnits()
+			pJSON = x.getUnits()
+			# the slot spinner text defines the slot, let's look for it in the units JSON
+			A.screens[2].lay1.queueLay.idQueue.text = "" 
+			i = 0
+			while i < x.numOfUnits:
+				if pJSON['units'][i]['slot'] == A.screens[2].lay1.slotLay.idSlot.text:
+					A.screens[2].lay1.queueLay.idQueue.text = pJSON['units'][i]['id'] 
+					A.screens[2].lay1.queueLay.idQueueStatus.text = pJSON['units'][i]['state'] 
+					A.screens[2].lay1.queueLay.idProgress.text = pJSON['units'][i]['percentdone'] 
+					A.screens[2].lay1.queueLay.idETA.text = pJSON['units'][i]['eta'] 
+				i += 1
+
+	_UpdateClientSemaphore = 0
+
+
 class WindowManager(ScreenManager):
 	pass
 
@@ -86,7 +137,20 @@ class MainWindow(Screen):
 
 		
 class ClientWindow(Screen):
-	pass
+	def __init__(self, **kwargs):
+		super(ClientWindow, self).__init__(**kwargs)
+		Clock.schedule_interval(self.updateClientStatus,2)
+		
+	def updateClientStatus(self, *args):
+		global _UpdateClientSemaphore
+		global _SelectedClient
+
+		# Start the separate thread
+		if _UpdateClientSemaphore == 0:
+			x = threading.Thread(target=thread_updateClient, args=(_SelectedClient,))
+			_UpdateClientSemaphore = 1
+			x.start()
+
 		
 	def set_client_power(self, value):
 		print("Power selected: ", value)
@@ -97,10 +161,51 @@ class ClientWindow(Screen):
 			if x.name == _SelectedClient:
 				#print("Client {} found, grabbing the data".format(args[0].text))
 				x.setPower(value)
+				
+	def selectSlot(self, value):
+		#print("Slot {} selected".format(value))
 
+		A = kv
+		
+		for x in _ClientList:
+			if x.name == _SelectedClient:
+				pJSON = x.slots_json
+				for i in range(0,x.numOfSlots):
+					#print("Inkrement i:",i)
+					if value == pJSON['slots'][i]['id']:
+						A.screens[2].lay1.slotLay.idSlotStatus.text = pJSON['slots'][i]['status']
+						A.screens[2].lay1.slotLay.idSlotDescription.text = pJSON['slots'][i]['description']
+				
+	def fold(self):
+		A = kv
+		
+		for x in _ClientList:
+			if x.name == _SelectedClient:
+				# get the selected slot id
+				slotID = A.screens[2].lay1.slotLay.idSlot.text
+				x.fold(slotID)
+
+	def pause(self):
+		A = kv
+		
+		for x in _ClientList:
+			if x.name == _SelectedClient:
+				# get the selected slot id
+				slotID = A.screens[2].lay1.slotLay.idSlot.text
+				x.pause(slotID)
+
+	def finish(self):
+		A = kv
+		
+		for x in _ClientList:
+			if x.name == _SelectedClient:
+				# get the selected slot id
+				slotID = A.screens[2].lay1.slotLay.idSlot.text
+				x.finish(slotID)
+
+	
 
 class AddWindow(Screen):
-	pass
 	
 	def saveBtn(self):
 		clientName = self.lay1.innerLay.clientName.text.strip()
@@ -133,24 +238,9 @@ class FAH_Remote(App):
 		A.screens[2].lay1.idClient.text = "Client: "+args[0].text
 		
 		global _SelectedClient
-		
 		_SelectedClient = args[0].text
-		
-		# get the client and get his data via telnet
-		for x in _ClientList:
-			if x.name == _SelectedClient:
-				#print("Client {} found, grabbing the data".format(args[0].text))
-				x.getOptions()
-				A.screens[2].lay1.clientLay.idUser.text = x.user
-				x.getPower()
-				A.screens[2].lay1.clientLay.idPower.text = x.power
-				x.getPPD()
-				A.screens[2].lay1.clientLay.idPpd.text = x.ppd
-		
-		
-		
-	def build(self):
 
+	def build(self):
 
 		A = kv
 		A.current = 'main'
