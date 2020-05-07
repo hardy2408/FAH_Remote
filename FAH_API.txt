@@ -1,3 +1,11 @@
+############ This is the API description for the folding@home client
+See also 
+https://github.com/FoldingAtHome/fah-control/wiki/3rd-party-FAHClient-API
+
+Further API descriptions can be found at 
+https://api.foldingathome.org/
+
+
   auth                        Authenticate.
   error                       Error message.
   exit                        Exit the command processor

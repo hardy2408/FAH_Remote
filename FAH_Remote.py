@@ -215,13 +215,18 @@ class AddWindow(Screen):
 		# let's look if the given client name is unique and not empty
 		# todo
 		
+		entries = list(store.find(name=clientName))
+		#print("Entries:", entries)
+		if len(entries) != 0 or len(clientName) == 0:
+			show_popup("Client name exists or is empty")
+			return
 		
 		clientIP = self.lay1.innerLay.ipAddress.text.strip()
 		# let's check the IP address againt the regular expression of a real IP address
 		matchIP = re.search("^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$", clientIP)
 		if matchIP == None:
 			#print("No IP address given", clientIP)
-			show_popup()
+			show_popup("IP address is not valid")
 		else:
 		
 			port = int(self.lay1.innerLay.port.text.strip())
@@ -233,6 +238,21 @@ class AddWindow(Screen):
 			# switch to the main screen
 			A = kv
 			A.current = "main"
+			
+			app= App.get_running_app() # get the app to access the changeWindow function
+			
+			aButton = Button(text=clientName)
+			aButton.bind(on_release=app.changeWindow)
+			A.screens[0].lay1.innerLay.add_widget(aButton)
+			aLabel = Label(text="Offline")
+			A.screens[0].lay1.innerLay.add_widget(aLabel)
+			_StatusWidget.append(aLabel)
+			A.screens[0].lay1.innerLay.add_widget(Button(text="Edit"))
+			A.screens[0].lay1.innerLay.add_widget(Button(text="Delete"))
+			# create the client object and append it to the list of clients
+			aClient = FAH_Client(clientName, clientIP, port)
+			_ClientList.append(aClient)
+			
 		
 
 class IPTextInput(TextInput):
@@ -246,14 +266,12 @@ class IPTextInput(TextInput):
 
 class MyPopup(FloatLayout):
 	def __init__(self, **kwargs):
-		super(MyPopup, self).__init__(**kwargs)
+		super(MyPopup, self).__init__()
+		self.idLabel.text = kwargs['text']
 
-	def setLabel(self, errorText):
-		self.idLabel.text = errorText
 	
-def show_popup():
-	show = MyPopup() # Create a new instance of the Popup class 
-	show.setLabel("IP address is not valid")
+def show_popup(textStr):
+	show = MyPopup(text=textStr) # Create a new instance of the Popup class 
 	
 	popupWindow = Popup(title="Popup Window", content=show, size_hint=(None,None),size=(400,400)) 
 	# Create the popup window
@@ -262,7 +280,7 @@ def show_popup():
 
 	popupWindow.open() # show the popup
 	
-
+# Load the kivy file with the static GUI components 
 kv = Builder.load_file("FAH.kv")
 
 	
