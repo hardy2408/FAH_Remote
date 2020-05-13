@@ -43,7 +43,13 @@ Levels of logging are:
 from FAH import FAH_Client
 
 _ClientList = [] # global variable for the clients
+
+# we need to access the dynamically generated widgets for edit, update, and delete
+_ClientWidget = [] # global variable for client widget in the main Screen
 _StatusWidget = [] # global variable for Status Widget in the main Screen
+_EditWidget = [] # global variable for Edit Widget in the main Screen
+_DeleteWidget = [] # global variable for Delete Widget in the main Screen
+
 _ClientSemaphore = 0 # global variable for the threads
 _UpdateClientSemaphore = 0 # global variable for updating the client window
 _SelectedClient = ""
@@ -243,15 +249,105 @@ class AddWindow(Screen):
 			
 			aButton = Button(text=clientName)
 			aButton.bind(on_release=app.changeWindow)
+			_ClientWidget.append(aButton)
 			A.screens[0].lay1.innerLay.add_widget(aButton)
+			
 			aLabel = Label(text="Offline")
 			A.screens[0].lay1.innerLay.add_widget(aLabel)
 			_StatusWidget.append(aLabel)
-			A.screens[0].lay1.innerLay.add_widget(Button(text="Edit"))
-			A.screens[0].lay1.innerLay.add_widget(Button(text="Delete"))
+			
+			aButton = MyButton(text="Edit", name=clientName)
+			aButton.bind(on_release=aButton.editBtn)
+			A.screens[0].lay1.innerLay.add_widget(aButton)
+			_EditWidget.append(aButton)
+			
+			aButton = MyButton(text="Delete", name=clientName)
+			aButton.bind(on_release=aButton.deleteBtn)
+			A.screens[0].lay1.innerLay.add_widget(aButton)
+			_DeleteWidget.append(aButton)
+			
 			# create the client object and append it to the list of clients
 			aClient = FAH_Client(clientName, clientIP, port)
 			_ClientList.append(aClient)
+			
+			
+class EditClient(Screen):
+	
+	def saveBtn(self):
+		
+		global _SelectedClient
+		global _ClientList
+		
+		for key, entry in store.find(name=_SelectedClient):
+			print('key:', key, ', entry:', entry)
+			print("Name", entry['name'])
+			oldIP = key
+			oldEntry = entry
+
+		# delete the old entry in the storage
+		store.delete(oldIP)
+		
+		# get the client line index for the widgets
+		widgetIndex = 0
+		for x in _ClientList:
+			if x.name == _SelectedClient:
+				print("x.name:", x.name)
+				break
+			widgetIndex += 1
+		
+		print("WidgetIndex", widgetIndex)
+		
+		clientName = self.lay1.innerLay.clientName.text.strip()
+		
+		# name must be unique
+		entries = list(store.find(name=clientName))
+		print("Entries:", entries)
+		if len(entries) != 0 or len(clientName) == 0:
+			show_popup("Client name exists or is empty")
+			# restore old client
+			store.put(oldIP, name=oldEntry['name'], port=oldEntry['port'])
+			return
+		
+		clientIP = self.lay1.innerLay.ipAddress.text.strip()
+		# let's check the IP address againt the regular expression of a real IP address
+		matchIP = re.search("^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$", clientIP)
+		if matchIP == None:
+			#print("No IP address given", clientIP)
+			show_popup("IP address is not valid")
+			# restore old client
+			store.put(oldIP, name=oldEntry['name'], port=oldEntry['port'])
+		else:
+					
+			port = int(self.lay1.innerLay.port.text.strip())
+
+			# update the widgets, clients and client lists
+			_ClientWidget[widgetIndex].text = clientName
+			_EditWidget[widgetIndex].name = clientName
+			_DeleteWidget[widgetIndex].name = clientName 	
+			_SelectedClient = clientName
+			print("SelectedClient: ", _SelectedClient)
+
+			# switch to the main screen
+			A = kv
+			A.current = "main"
+
+			#return # for the time being
+
+			# store the new client permanent
+			store.put(str(clientIP), name=clientName, port=port)
+			msg = 'Client stored: ' + clientIP +" "+ clientName + " " + str(port)
+			logger.info(msg)
+			print(msg)
+			# update the client object and the clientList
+			aClient = _ClientList.pop(widgetIndex)
+			aClient.name = clientName
+			aClient.ip_address = clientIP
+			aClient.port = port
+			
+			_ClientList.insert(widgetIndex,aClient)
+			
+
+			
 			
 		
 
@@ -283,6 +379,31 @@ def show_popup(textStr):
 # Load the kivy file with the static GUI components 
 kv = Builder.load_file("FAH.kv")
 
+class MyButton(Button):
+	def __init__(self, **kwargs):
+		super(MyButton, self).__init__()
+		self.text = kwargs['text']
+		self.name = kwargs['name']
+
+	def editBtn(self, *args):
+		#print("Text Prop:",self.text)
+		#print("Client Prop:",self.name)
+		
+		global _SelectedClient
+		_SelectedClient = self.name
+		A = kv
+		A.transition.direction = "left"
+		A.current = "EditWindow"
+		A.screens[3].lay1.innerLay.clientName.text = _SelectedClient
+		for x in _ClientList:
+			if x.name == _SelectedClient:
+				A.screens[3].lay1.innerLay.ipAddress.text = x.ip_address
+				A.screens[3].lay1.innerLay.port.text = str(x.port)
+			
+	def deleteBtn(self, *args):
+		print("Text Prop:",self.text)
+		print("Client Prop:",self.name)
+			
 	
 class FAH_Remote(App):
 
@@ -316,19 +437,33 @@ class FAH_Remote(App):
 		# add the client lines from the store to the GUI
 		logger.debug("Keys in the client dictionary: ",store.keys())
 		clients = store.keys()
+		#app= App.get_running_app() # get the app to access the changeWindow function
+
 		for k in clients:
 			logger.debug("Pairs: ", store.get(k))
 			logger.debug("Name: ", store.get(k)['name'])
 			logger.debug("Keys: ",store.keys())
 			cName = store.get(k)['name']
+			
 			aButton = Button(text=cName)
 			aButton.bind(on_release=self.changeWindow)
 			A.screens[0].lay1.innerLay.add_widget(aButton)
+			_ClientWidget.append(aButton)
+			
 			aLabel = Label(text="Offline")
 			A.screens[0].lay1.innerLay.add_widget(aLabel)
 			_StatusWidget.append(aLabel)
-			A.screens[0].lay1.innerLay.add_widget(Button(text="Edit"))
-			A.screens[0].lay1.innerLay.add_widget(Button(text="Delete"))
+			
+			aButton = MyButton(text="Edit", name=cName)
+			A.screens[0].lay1.innerLay.add_widget(aButton)
+			aButton.bind(on_release=aButton.editBtn)
+			_EditWidget.append(aButton)
+
+			aButton = MyButton(text="Delete", name=cName)
+			A.screens[0].lay1.innerLay.add_widget(aButton)
+			aButton.bind(on_release=aButton.deleteBtn)
+			_DeleteWidget.append(aButton)
+
 			# create the client object and append it to the list of clients
 			aClient = FAH_Client(cName, k, store.get(k)['port'])
 			_ClientList.append(aClient)

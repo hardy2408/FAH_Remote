@@ -1,7 +1,9 @@
 WindowManager:
-    MainWindow:
-    AddWindow:
+	MainWindow:
+	AddWindow:
 	ClientWindow:
+	EditClient:
+	
 
 <MainWindow>:
     name: 'main'
@@ -80,6 +82,7 @@ WindowManager:
 				text: "Save"
 				on_press: root.saveBtn()
 				
+
 <ClientWindow>:
     name: "Client"
 	
@@ -224,6 +227,59 @@ WindowManager:
 			on_release:
 				app.root.current = "main"
 				root.manager.transition.direction = "right"
+
+<EditClient>:
+    name: "EditWindow"
+	
+	lay1: lay1
+	
+	GridLayout:
+		cols:1
+		id : lay1
+		innerLay: innerLay
+		
+		GridLayout:
+			cols:2
+			id: innerLay
+			clientName: clientName
+			ipAddress: ipAddress
+			port: port
+			
+			Label:
+				text: "Name: "
+				
+			TextInput:
+				id: clientName
+				multiline: False
+				write_tab: False
+
+			Label:
+				text: "IP Address: "
+				
+			IPTextInput:
+				id: ipAddress
+				multiline: False
+				write_tab: False
+				
+			Label:
+				text: "Port: "
+				
+			TextInput:
+				id: port
+				multiline: False
+				input_filter: "int"
+				write_tab: False
+			
+			Button:
+				text: "Cancel"
+				on_release:
+					app.root.current = "main"
+					root.manager.transition.direction = "right"
+
+			Button:
+				text: "Save"
+				on_press: root.saveBtn()
+
 
 <MyPopup>:
 	idButton: idButton
