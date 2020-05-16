@@ -162,7 +162,7 @@ class ClientWindow(Screen):
 
 		
 	def set_client_power(self, value):
-		print("Power selected: ", value)
+		#print("Power selected: ", value)
 
 		global _SelectedClient
 		
@@ -247,7 +247,7 @@ class AddWindow(Screen):
 			
 			app= App.get_running_app() # get the app to access the changeWindow function
 			
-			aButton = Button(text=clientName)
+			aButton = MyButton(text=clientName, name=clientName)
 			aButton.bind(on_release=app.changeWindow)
 			_ClientWidget.append(aButton)
 			A.screens[0].lay1.innerLay.add_widget(aButton)
@@ -279,8 +279,8 @@ class EditClient(Screen):
 		global _ClientList
 		
 		for key, entry in store.find(name=_SelectedClient):
-			print('key:', key, ', entry:', entry)
-			print("Name", entry['name'])
+			#print('key:', key, ', entry:', entry)
+			#print("Name", entry['name'])
 			oldIP = key
 			oldEntry = entry
 
@@ -291,17 +291,17 @@ class EditClient(Screen):
 		widgetIndex = 0
 		for x in _ClientList:
 			if x.name == _SelectedClient:
-				print("x.name:", x.name)
+				#print("x.name:", x.name)
 				break
 			widgetIndex += 1
 		
-		print("WidgetIndex", widgetIndex)
+		#print("WidgetIndex", widgetIndex)
 		
 		clientName = self.lay1.innerLay.clientName.text.strip()
 		
 		# name must be unique
 		entries = list(store.find(name=clientName))
-		print("Entries:", entries)
+		#print("Entries:", entries)
 		if len(entries) != 0 or len(clientName) == 0:
 			show_popup("Client name exists or is empty")
 			# restore old client
@@ -325,7 +325,7 @@ class EditClient(Screen):
 			_EditWidget[widgetIndex].name = clientName
 			_DeleteWidget[widgetIndex].name = clientName 	
 			_SelectedClient = clientName
-			print("SelectedClient: ", _SelectedClient)
+			#print("SelectedClient: ", _SelectedClient)
 
 			# switch to the main screen
 			A = kv
@@ -337,7 +337,7 @@ class EditClient(Screen):
 			store.put(str(clientIP), name=clientName, port=port)
 			msg = 'Client stored: ' + clientIP +" "+ clientName + " " + str(port)
 			logger.info(msg)
-			print(msg)
+			#print(msg)
 			# update the client object and the clientList
 			aClient = _ClientList.pop(widgetIndex)
 			aClient.name = clientName
@@ -346,10 +346,6 @@ class EditClient(Screen):
 			
 			_ClientList.insert(widgetIndex,aClient)
 			
-
-			
-			
-		
 
 class IPTextInput(TextInput):
 	def insert_text(self, substring, from_undo=False):
@@ -365,6 +361,11 @@ class MyPopup(FloatLayout):
 		super(MyPopup, self).__init__()
 		self.idLabel.text = kwargs['text']
 
+class ConfirmPopup(FloatLayout):
+	def __init__(self, **kwargs):
+		super(ConfirmPopup, self).__init__()
+		self.idLabel.text = kwargs['text']
+
 	
 def show_popup(textStr):
 	show = MyPopup(text=textStr) # Create a new instance of the Popup class 
@@ -375,6 +376,25 @@ def show_popup(textStr):
 	show.idButton.bind(on_press=popupWindow.dismiss)
 
 	popupWindow.open() # show the popup
+
+def show_ConfirmPopup(clientName):
+	msg = "Do you really wanna delete the client " + clientName + "?"
+	show = ConfirmPopup(text=msg) # Create a new instance of the Popup class 
+	
+	popupWindow = Popup(title="Confirm Window", content=show, size_hint=(None,None),size=(400,400)) 
+	# Create the popup window
+
+	# toDo: we have to call the real deleteClient function here
+	app= App.get_running_app() # get the app to access the deleteClient function
+	
+	show.idButton.bind(on_press=app.deleteClient)
+	show.idButton.bind(on_release=popupWindow.dismiss)
+
+	show.idCancel.bind(on_press=popupWindow.dismiss)
+
+	popupWindow.open() # show the popup
+
+	
 	
 # Load the kivy file with the static GUI components 
 kv = Builder.load_file("FAH.kv")
@@ -401,8 +421,18 @@ class MyButton(Button):
 				A.screens[3].lay1.innerLay.port.text = str(x.port)
 			
 	def deleteBtn(self, *args):
-		print("Text Prop:",self.text)
-		print("Client Prop:",self.name)
+		#print("Text Prop:",self.text)
+		#print("Client Prop:",self.name)
+		global _SelectedClient
+		_SelectedClient = self.name
+		show_ConfirmPopup(self.name)
+
+class MyLabel(Label):
+	def __init__(self, **kwargs):
+		super(MyLabel, self).__init__()
+		self.text = kwargs['text']
+		self.name = kwargs['name']
+
 			
 	
 class FAH_Remote(App):
@@ -415,7 +445,7 @@ class FAH_Remote(App):
 		
 		# clear screen for the new client
 		A.screens[2].lay1.clientLay.idUser.text = ""
-		A.screens[2].lay1.clientLay.idPower.text = "light"
+		A.screens[2].lay1.clientLay.idPower.text = ""
 		A.screens[2].lay1.clientLay.idPpd.text = ""
 
 		A.screens[2].lay1.slotLay.idSlot.text = "Slot"
@@ -429,6 +459,50 @@ class FAH_Remote(App):
 		
 		global _SelectedClient
 		_SelectedClient = args[0].text
+
+	def deleteClient(self, *args):
+
+		global _SelectedClient
+		global _ClientList
+		
+		for key, entry in store.find(name=_SelectedClient):
+			#print('key:', key, ', entry:', entry)
+			#print("Name", entry['name'])
+			oldIP = key
+			oldEntry = entry
+
+		# delete the old entry in the storage
+		store.delete(oldIP)
+		
+		# get the client line index for the widgets
+		widgetIndex = 0
+		for x in _ClientList:
+			if x.name == _SelectedClient:
+				#print("x.name:", x.name)
+				break
+			widgetIndex += 1
+
+		#print("Parent:", _ClientWidget[0].parent)
+		# now let's walk through the children
+		for widget in _ClientWidget[0].parent.walk():
+			if isinstance(widget,MyButton):
+				if widget.name == _SelectedClient:
+					#print("MyButton WidgetName:", widget.name)
+					_ClientWidget[0].parent.remove_widget(widget)
+			if isinstance(widget,MyLabel):
+				if widget.name == _SelectedClient:
+					#print("MyLabel WidgetName:", widget.name)
+					_ClientWidget[0].parent.remove_widget(widget)
+
+		#print("SelectedClient: ", _SelectedClient)
+
+		# remove the client object from the clientList
+		aClient = _ClientList.pop(widgetIndex)
+
+		msg = 'Client deleted: ' + oldIP +" "+ oldEntry['name'] + " " + str(oldEntry['port'])
+		logger.info(msg)
+
+		
 
 	def build(self):
 
@@ -445,12 +519,12 @@ class FAH_Remote(App):
 			logger.debug("Keys: ",store.keys())
 			cName = store.get(k)['name']
 			
-			aButton = Button(text=cName)
+			aButton = MyButton(text=cName, name=cName)
 			aButton.bind(on_release=self.changeWindow)
 			A.screens[0].lay1.innerLay.add_widget(aButton)
 			_ClientWidget.append(aButton)
 			
-			aLabel = Label(text="Offline")
+			aLabel = MyLabel(text="Offline", name=cName)
 			A.screens[0].lay1.innerLay.add_widget(aLabel)
 			_StatusWidget.append(aLabel)
 			

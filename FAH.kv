@@ -297,3 +297,26 @@ WindowManager:
 		size_hint: 0.8, 0.2
 		pos_hint: {"x":0.1, "y":0.1}
 		
+<ConfirmPopup>:
+	idButton: idButton
+	idLabel: idLabel
+	idCancel: idCancel
+	
+	Label:
+		id: idLabel
+		text: "Do you really wanna delete?"
+		size_hint: 0.6, 0.2
+		pos_hint: {"x":0.2, "top":1}
+		
+	Button:
+		id: idCancel
+		text: "Cancel"
+		size_hint: 0.4, 0.2
+		pos_hint: {"x":0.1, "y":0.1}
+		
+	Button:
+		id: idButton
+		text: "Delete"
+		size_hint: 0.4, 0.2
+		pos_hint: {"x":0.6, "y":0.1}
+		
