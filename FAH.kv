@@ -1,7 +1,9 @@
 WindowManager:
-    MainWindow:
-    AddWindow:
+	MainWindow:
+	AddWindow:
 	ClientWindow:
+	EditClient:
+	
 
 <MainWindow>:
     name: 'main'
@@ -50,6 +52,7 @@ WindowManager:
 			TextInput:
 				id: clientName
 				multiline: False
+				write_tab: False
 
 			Label:
 				text: "IP Address: "
@@ -57,6 +60,7 @@ WindowManager:
 			IPTextInput:
 				id: ipAddress
 				multiline: False
+				write_tab: False
 				
 			Label:
 				text: "Port: "
@@ -66,6 +70,7 @@ WindowManager:
 				multiline: False
 				input_filter: "int"
 				text: "36330"
+				write_tab: False
 			
 			Button:
 				text: "Cancel"
@@ -76,10 +81,8 @@ WindowManager:
 			Button:
 				text: "Save"
 				on_press: root.saveBtn()
-				on_release:
-					app.root.current = "main"
-					root.manager.transition.direction = "right"
 				
+
 <ClientWindow>:
     name: "Client"
 	
@@ -224,3 +227,96 @@ WindowManager:
 			on_release:
 				app.root.current = "main"
 				root.manager.transition.direction = "right"
+
+<EditClient>:
+    name: "EditWindow"
+	
+	lay1: lay1
+	
+	GridLayout:
+		cols:1
+		id : lay1
+		innerLay: innerLay
+		
+		GridLayout:
+			cols:2
+			id: innerLay
+			clientName: clientName
+			ipAddress: ipAddress
+			port: port
+			
+			Label:
+				text: "Name: "
+				
+			TextInput:
+				id: clientName
+				multiline: False
+				write_tab: False
+
+			Label:
+				text: "IP Address: "
+				
+			IPTextInput:
+				id: ipAddress
+				multiline: False
+				write_tab: False
+				
+			Label:
+				text: "Port: "
+				
+			TextInput:
+				id: port
+				multiline: False
+				input_filter: "int"
+				write_tab: False
+			
+			Button:
+				text: "Cancel"
+				on_release:
+					app.root.current = "main"
+					root.manager.transition.direction = "right"
+
+			Button:
+				text: "Save"
+				on_press: root.saveBtn()
+
+
+<MyPopup>:
+	idButton: idButton
+	idLabel: idLabel
+	
+	Label:
+		id: idLabel
+		text: "Error"
+		size_hint: 0.6, 0.2
+		pos_hint: {"x":0.2, "top":1}
+		
+	Button:
+		id: idButton
+		text: "Ok"
+		size_hint: 0.8, 0.2
+		pos_hint: {"x":0.1, "y":0.1}
+		
+<ConfirmPopup>:
+	idButton: idButton
+	idLabel: idLabel
+	idCancel: idCancel
+	
+	Label:
+		id: idLabel
+		text: "Do you really wanna delete?"
+		size_hint: 0.6, 0.2
+		pos_hint: {"x":0.2, "top":1}
+		
+	Button:
+		id: idCancel
+		text: "Cancel"
+		size_hint: 0.4, 0.2
+		pos_hint: {"x":0.1, "y":0.1}
+		
+	Button:
+		id: idButton
+		text: "Delete"
+		size_hint: 0.4, 0.2
+		pos_hint: {"x":0.6, "y":0.1}
+		
