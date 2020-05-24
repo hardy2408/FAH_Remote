@@ -27,3 +27,22 @@ The following prerequisites must be fullfilled:
 As soon this is done you can start using THIS application and configure your clients.
 
 Have fun!
+
+##################################
+Technical description
+##################################
+The application currently consists of the following structure:
+FAH_Remote.py: the main python application file
+FAH.py: the class description of a client
+FAH.kv: The static GUI desdcription in kivy language
+FAH_API.txt: A desciption of the API and links to other API descriptions of the Folding@home project
+android.txt: Mandatory descritions for testing the app on Android with the kivy launcher
+README.TXT: This file 
+
+##################################
+References and tools used
+##################################
+Python 3.7.7,
+Python Virtual environment venv 
+Kivy 1.11.1
+Git
