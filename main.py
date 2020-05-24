@@ -20,7 +20,7 @@ logger.setLevel(logging.WARNING)
 
 # create console handler and set level
 ch = logging.StreamHandler()
-ch.setLevel(logging.WARNING)
+ch.setLevel(logging.DEBUG)
 
 # create formatter
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -56,19 +56,26 @@ _SelectedClient = ""
 
 store = JsonStore('FAH_remote.json')
 
-def removeRef(s):
-	aString = s[s.find("]")+1:]
-	aString = aString[:aString.rfind("[")]
-	return(aString)
 	
 def thread_clients(number):
 
+	global _StatusWidget
+	
+	A = kv
+	
 	i = 0
 	for k in _ClientList:
-		logger.debug("ClientName:",k.name)
 		k.connect()
+		msg = "Checking Status of ClientName:" + k.name + " " + k.status
+		logger.debug(msg)
 		_StatusWidget[i].text = k.status
-		i = i +1
+		
+		for widget in A.screens[0].lay1.innerLay.walk():
+			if isinstance(widget,MyLabel):
+				if widget.name == k.name:
+					widget.text = k.status
+
+		i += 1
 
 	global _ClientSemaphore
 	_ClientSemaphore = 0
@@ -235,6 +242,8 @@ class AddWindow(Screen):
 			show_popup("IP address is not valid")
 		else:
 		
+			global _StatusWidget
+			
 			port = int(self.lay1.innerLay.port.text.strip())
 			
 			# store the new client permanent
@@ -252,7 +261,7 @@ class AddWindow(Screen):
 			_ClientWidget.append(aButton)
 			A.screens[0].lay1.innerLay.add_widget(aButton)
 			
-			aLabel = Label(text="Offline")
+			aLabel = MyLabel(text="Offline", name=clientName)
 			A.screens[0].lay1.innerLay.add_widget(aLabel)
 			_StatusWidget.append(aLabel)
 			
@@ -322,6 +331,8 @@ class EditClient(Screen):
 
 			# update the widgets, clients and client lists
 			_ClientWidget[widgetIndex].text = clientName
+			
+			_StatusWidget[widgetIndex].name = clientName
 			_EditWidget[widgetIndex].name = clientName
 			_DeleteWidget[widgetIndex].name = clientName 	
 			_SelectedClient = clientName
@@ -509,14 +520,18 @@ class FAH_Remote(App):
 		A = kv
 		A.current = 'main'
 		# add the client lines from the store to the GUI
-		logger.debug("Keys in the client dictionary: ",store.keys())
+		msg = "Keys in the client dictionary: " + str(store.keys())
+		logger.debug(msg)
 		clients = store.keys()
 		#app= App.get_running_app() # get the app to access the changeWindow function
 
 		for k in clients:
-			logger.debug("Pairs: ", store.get(k))
-			logger.debug("Name: ", store.get(k)['name'])
-			logger.debug("Keys: ",store.keys())
+			msg = "Pairs: " + str(store.get(k))
+			logger.debug(msg)
+			msg = "Name: " + str(store.get(k)['name'])
+			logger.debug(msg)
+			msg = "Keys: " + str(store.keys())
+			logger.debug(msg)
 			cName = store.get(k)['name']
 			
 			aButton = MyButton(text=cName, name=cName)

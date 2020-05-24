@@ -7,7 +7,7 @@ import logging
 	
 # create logger
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.WARNING)
+logger.setLevel(logging.DEBUG)
 
 # create console handler and set level
 ch = logging.StreamHandler()
