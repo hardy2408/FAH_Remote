@@ -89,10 +89,14 @@ class FAH_Client:
 		content = '{ "options": \n' + content
 		content = content + '}'
 		#print("JSON-String: \n", content)
-		self.options_JSON = json.loads(content)
-		
+		try: 
+			self.options_JSON = json.loads(content)
+		except:
+			print("JSON-String: \n", content)
+			
 		msg = "JSON Dump\n" + json.dumps(self.options_JSON, indent=4, sort_keys=True)
 		logger.debug(msg)
+
 		self.power = ""
 		self.user = ""
 		self.team = ""
@@ -139,7 +143,11 @@ class FAH_Client:
 		content = '{ "options": \n' + content
 		content = content + '}'
 		#print("JSON-String: \n", content)
-		self.options_JSON = json.loads(content)
+		try:
+			self.options_JSON = json.loads(content)
+		except:
+			print("JSON-String: \n", content)
+		
 		
 		msg = "JSON Dump\n" + json.dumps(self.options_JSON, indent=4, sort_keys=True)
 		#print(msg)
