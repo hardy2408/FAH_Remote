@@ -95,7 +95,8 @@ def thread_updateClient(client):
 		if x.name == client and x.status == "Online":
 			#print("Active client found:", x.name, x.status)
 			x.getOptions()
-			A.screens[2].lay1.clientLay.idUser.text = x.user
+			A.screens[2].lay1.credLay.idUser.text = x.user
+			A.screens[2].lay1.credLay.idTeam.text = x.team
 
 			x.getPower()
 			A.screens[2].lay1.clientLay.idPower.text = x.power
@@ -455,7 +456,9 @@ class FAH_Remote(App):
 		A.screens[2].lay1.idClient.text = "Client: "+args[0].text
 		
 		# clear screen for the new client
-		A.screens[2].lay1.clientLay.idUser.text = ""
+		A.screens[2].lay1.credLay.idUser.text = ""
+		A.screens[2].lay1.credLay.idTeam.text = ""
+
 		A.screens[2].lay1.clientLay.idPower.text = ""
 		A.screens[2].lay1.clientLay.idPpd.text = ""
 

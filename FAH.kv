@@ -92,6 +92,7 @@ WindowManager:
 		cols:1
 		id : lay1
 		idClient: idClient
+		credLay : credLay
 		clientLay: clientLay
 		slotLay: slotLay
 		queueLay: queueLay
@@ -99,25 +100,36 @@ WindowManager:
 		Label:
 			text: "Client: "
 			id: idClient
-		
+
 		GridLayout:
 			cols:4
+			id: credLay
+
+			idUser: idUser
+			idTeam: idTeam
+
+			Label:
+				text: "User:"
+				
+			Label:
+				id: idUser
+
+			Label:
+				text: "Team:"
+				
+			Label:
+				id: idTeam
+		
+		GridLayout:
+			cols:2
 			id: clientLay
 			
 			idPower: idPower
-			idUser: idUser
-			idTeam: idTeam
 			idPpd: idPpd
 			
 			#line 1
 			Label:
 				text: "Power"
-				
-			Label:
-				text: "User"
-				
-			Label:
-				text: "Team"
 				
 			Label:
 				text: "PointsPerDay"
@@ -129,11 +141,6 @@ WindowManager:
 				values: "light", "medium", "full"
 				on_text: root.set_client_power(idPower.text)
 				
-			Label:
-				id: idUser
-				
-			Label:
-				id: idTeam
 				
 			Label:
 				id: idPpd
